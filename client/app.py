@@ -1,82 +1,67 @@
 import streamlit as st
 import os
 import tempfile
-from pathlib import Path
-from pinecone import Pinecone, ServerlessSpec
+from pinecone import Pinecone
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_pinecone import PineconeVectorStore
 
-# 1. Setup API Keys
+# 1. Setup API Keys & Constants
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
+# Use your specific index name here
+INDEX_NAME = "my-3072-dim-index"
 
-# --- ADDED: SPEED OPTIMIZATION (CACHING) ---
+# 2. Optimized Resource Loading
 @st.cache_resource
-def get_medical_retriever():
-    """Initializes and caches the Pinecone connection so it's instant after the first load."""
+def get_resources():
+    # gemini-embedding-001 outputs 3072 dimensions by default
     embed_model = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
-    vectorstore = PineconeVectorStore(index_name="medicalindex", embedding=embed_model)
-    # k=3 retrieves the best 3 chunks, making the prompt smaller and faster
-    return vectorstore.as_retriever(search_kwargs={"k": 3})
+    
+    # Initialize VectorStore with your specific index
+    vectorstore = PineconeVectorStore(index_name=INDEX_NAME, embedding=embed_model)
+    
+    # Initialize fast chat model
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", streaming=True)
+    
+    return vectorstore.as_retriever(search_kwargs={"k": 3}), llm
 
-@st.cache_resource
-def get_chat_model():
-    """Caches the Gemini Flash model, which is much faster for chat than the Pro version."""
-    return ChatGoogleGenerativeAI(model="gemini-1.5-flash", streaming=True)
+retriever, llm = get_resources()
 
-# Initialize the cached tools
-retriever = get_medical_retriever()
-llm = get_chat_model()
-# --------------------------------------------
-
-# 2. Initialize Pinecone (Existing code)
-pc = Pinecone(api_key=PINECONE_API_KEY)
-index_name = "medicalindex"
-
-# 3. UI Logic (Existing code)
+# 3. UI Logic
 st.title("🩺 Medical Assistant Bot")
 uploaded_files = st.file_uploader("Upload Medical PDFs", type="pdf", accept_multiple_files=True)
 
 if st.button("Process & Index Documents"):
     if uploaded_files:
-        with st.spinner("Processing..."):
+        with st.spinner("Processing into 3072-dimensional space..."):
             embed_model = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
             for uploaded_file in uploaded_files:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                    tmp_file.write(uploaded_file.getvalue())
-                    tmp_path = tmp_file.name
-                
-                loader = PyPDFLoader(tmp_path)
-                docs = loader.load()
-                splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-                chunks = splitter.split_documents(docs)
-                
-                PineconeVectorStore.from_documents(
-                    chunks, 
-                    embed_model, 
-                    index_name=index_name
-                )
-                os.remove(tmp_path)
-            st.success("Documents successfully indexed!")
-            # Refresh retriever after indexing new docs
-            st.rerun() 
-    else:
-        st.error("Please upload files first.")
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                    tmp.write(uploaded_file.getvalue())
+                    loader = PyPDFLoader(tmp.name)
+                    docs = loader.load()
+                    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
+                    chunks = splitter.split_documents(docs)
+                    
+                    # Ensure we are uploading to the correct 3072-dim index
+                    PineconeVectorStore.from_documents(
+                        chunks, embed_model, index_name=INDEX_NAME
+                    )
+                    os.remove(tmp.name)
+            st.success("Indexing Complete!")
+            st.rerun()
 
-# 4. Chat Interface (UPDATED FOR SPEED)
+# 4. Fast Chat Interface
 if prompt := st.chat_input("Ask a medical question..."):
     st.chat_message("user").markdown(prompt)
     
     with st.chat_message("assistant"):
-        # --- ADDED: STREAMING LOGIC ---
-        # 1. Fast Retrieval
+        # Retrieve context from your high-dim index
         docs = retriever.invoke(prompt)
-        context = "\n".join([d.page_content for d in docs])
+        context = "\n\n".join([d.page_content for d in docs])
         
-        # 2. Stream Response (Typewriter effect)
-        full_prompt = f"Context: {context}\n\nQuestion: {prompt}"
-        
-        # This writes the response word-by-word as it's generated
+        # Stream the response
+        full_prompt = f"Using this medical context: {context}\n\nAnswer the question: {prompt}"
         st.write_stream(llm.stream(full_prompt))
