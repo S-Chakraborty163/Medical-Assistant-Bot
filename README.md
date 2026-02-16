@@ -13,6 +13,14 @@ Real-time Streaming: Answers are streamed word-by-word (typewriter effect) for a
 
 Cloud Optimized: Fully compatible with Streamlit Cloud secrets management and ephemeral server environments.
 
+🏗️ Architecture Overview:
+
+<img width="599" height="542" alt="Screenshot 2026-02-16 180227" src="https://github.com/user-attachments/assets/8eacab2e-50d1-431b-989c-f5b7a46fe8e2" />
+
+📡 Data Flow:
+
+<img width="3946" height="3402" alt="deepseek_mermaid_20260216_20a819" src="https://github.com/user-attachments/assets/7c7fa02b-6ff7-4136-a6f9-5bc446aff346" />
+
 
 ## 📂 Directory Details
 
