@@ -58,5 +58,4 @@ if st.button("Process & Index Documents"):
 # 4. Chat Interface
 if prompt := st.chat_input("Ask a medical question..."):
     st.chat_message("user").markdown(prompt)
-    # Add your retrieval and LLM logic here to generate the 'response'
     st.chat_message("assistant").markdown("I'm processing your request based on the indexed docs...")
