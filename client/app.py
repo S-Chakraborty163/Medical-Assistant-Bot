@@ -19,7 +19,7 @@ PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 
 # 2. Initialize Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY)
-index_name = "medicalindex"
+INDEX_NAME = "my-3072-dim-index"
 
 # 3. UI Logic
 st.title("🩺 Medical Assistant Bot")
@@ -59,3 +59,4 @@ if st.button("Process & Index Documents"):
 if prompt := st.chat_input("Ask a medical question..."):
     st.chat_message("user").markdown(prompt)
     st.chat_message("assistant").markdown("I'm processing your request based on the indexed docs...")
+
