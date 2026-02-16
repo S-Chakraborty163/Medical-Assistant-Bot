@@ -48,7 +48,7 @@ if st.button("Process & Index Documents"):
                 PineconeVectorStore.from_documents(
                     chunks, 
                     embed_model, 
-                    index_name=index_name
+                    index_name=INDEX_NAME
                 )
                 os.remove(tmp_path) # Clean up temp file
             st.success("Documents successfully indexed!")
