@@ -1,17 +1,27 @@
-🩺 Medical Assistant Bot (RAG-Powered):
+# 🏥 Medical Assistant Bot - AI-Powered Medical Document Q&A System
 
-An intelligent, document-aware Medical Assistant built with LangChain, Pinecone, and Google Gemini. This application allows users to upload medical PDFs and ask complex health questions, receiving real-time, contextually accurate answers backed by their own data.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.129.0-green)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.54.0-red)](https://streamlit.io/)
+[![LangChain](https://img.shields.io/badge/LangChain-1.2.10-orange)](https://www.langchain.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-VectorDB-purple)](https://www.pinecone.io/)
+[![Groq](https://img.shields.io/badge/Groq-LLM-yellow)](https://groq.com/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-🚀 Features:
-High-Speed RAG: Utilizes gemini and optimized caching for near-instant responses.
+## 📋 Overview
 
-PDF Knowledge Base: Interactive file uploader that processes, chunks, and indexes documents on the fly.
+**Medical Assistant Bot** is an intelligent RAG (Retrieval-Augmented Generation) system that allows users to upload medical PDF documents and ask questions about their content. The system processes the documents, stores them in a vector database, and provides accurate, context-aware answers using state-of-the-art LLMs.
 
-3072-Dim Vector Search: Uses high-resolution embeddings (gemini-embedding-001) for superior semantic understanding.
+### ✨ Key Features
 
-Real-time Streaming: Answers are streamed word-by-word (typewriter effect) for a modern chat experience.
-
-Cloud Optimized: Fully compatible with Streamlit Cloud secrets management and ephemeral server environments.
+- **📄 Multi-PDF Upload**: Upload multiple medical PDF documents simultaneously
+- **🔍 Semantic Search**: Pinecone vector database for efficient similarity search
+- **🤖 Advanced LLM Integration**: Powered by Groq's Llama 3.3 70B model
+- **💬 Interactive Chat**: Streamlit-based chat interface with history
+- **📊 Source Attribution**: Responses include references to source documents
+- **⚡ Fast Processing**: Asynchronous API with FastAPI backend
+- **🔐 Secure**: Environment-based configuration for API keys
+- **📱 Responsive UI**: Clean, user-friendly Streamlit frontend
 
 🏗️ Architecture Overview:
 
@@ -48,3 +58,95 @@ Cloud Optimized: Fully compatible with Streamlit Cloud secrets management and ep
 | **.python-version** | Python version specification |
 | **README.md** | Project documentation |   
 
+
+### 🛠️ Tech Stack
+
+- **Frontend**: Streamlit
+- **Backend**: FastAPI
+- **LLM Framework**: LangChain, LangChain-Groq
+- **Vector Database**: Pinecone
+- **Embeddings**: Google Generative AI Embeddings (gemini-embedding-001)
+- **PDF Processing**: PyPDF
+- **Language Model**: Llama-3.3-70b-versatile (Groq)
+- **Logging**: Custom logger with StreamHandler
+
+
+### 🚀 Getting Started
+
+#### Prerequisites
+
+- Python 3.10+
+- Groq API Key
+- Pinecone API Key
+- Google Generative AI API Key
+
+#### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/medical-assistant-bot.git
+   cd medical-assistant-bot
+   ```
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Add your API keys to .env
+   ```
+4. **Run the backend server**
+   ```bash
+   cd server
+   uvicorn main:app --reload --port 8000
+   ```
+5. **Run the frontend application**
+   ```bash
+   cd client
+   streamlit run app.py
+   ```
+
+
+🔧 Configuration:
+Create a .env file with the following variables:
+GROQ_API_KEY=your_groq_api_key
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_ENV=your_pinecone_environment
+GOOGLE_API_KEY=your_google_api_key
+API_URL=http://localhost:8000
+
+## 📡 API Endpoints:
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/upload_pdfs/` | Upload PDF documents to the system. |
+| `POST` | `/ask/` | Submit a question based on the uploaded PDFs. |
+
+## 📖 Usage Examples
+
+### 1. Uploading PDFs
+**Endpoint:** `POST /upload_pdfs/` 
+
+**Payload:** `multipart/form-data`
+
+```bash
+curl -X POST "[http://127.0.0.1:8000/upload_pdfs/](http://127.0.0.1:8000/upload_pdfs/)" \
+     -H "accept: application/json" \
+     -H "Content-Type: multipart/form-data" \
+     -F "files=@document1.pdf" \
+     -F "files=@document2.pdf"
+```
+### 2. Asking a Question
+
+**Endpoint:** `POST /ask/`
+
+**Payload:** `application/json`
+
+The endpoint expects a `POST` request with a JSON payload:
+
+```json
+{
+  "question": "What are the key findings in the financial report?"
+}
+```
